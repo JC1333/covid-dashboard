@@ -17,11 +17,12 @@ data_module.covid_API_request()
 news_module.news_API_request()
 
 app = Flask(__name__)
-
 config = get_config_data()
-
 covid_data = json.load(open('covid_data.json', 'r'))
 news = json.load(open('news_articles.json', 'r'))
+sched_updates = [{'title':'repeat','content':'dd'},
+                 {'title':'covid','content':'dd'},
+                 {'title':'news','content':'dd'}]
 
 
 def remove_article(title):
@@ -58,10 +59,12 @@ def index():
             rm_title = request.args.get("notif")
             remove_article(rm_title)
         if request.args.get("repeat"):
-            repeat_update=True
+            sched_updates[0]['content'] = 'true'
         if request.args.get("covid-data"):
+            sched_updates[1]['content'] = update_time
             data_module.schedule_covid_updates(update_time,update_name)
         if request.args.get("news"):
+            sched_updates[2]['content'] = update_time
             news_module.update_news(update_time,update_name)
 
         
@@ -70,6 +73,7 @@ def index():
     return render_template('index.html',
                            title='covid dashboard',
                            image=config['image'],
+                           updates=sched_updates,
                            news_articles=news,
                            location=covid_data['location'],
                            local_7day_infections=covid_data['local_infection_sum'],
