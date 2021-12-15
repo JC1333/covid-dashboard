@@ -2,9 +2,12 @@
 specifically data related recent cases,cumulative deaths and hospital admissions"""
 import sched
 import time
+import json
 from uk_covid19 import Cov19API
 from functionallity import time_convert
 from functionallity import get_config_data
+
+s = sched.scheduler(time.time,time.sleep)
 
 
 
@@ -117,11 +120,19 @@ def covid_API_request(location='exeter',location_type='ltla'):
             'national_cumumlative_deaths':national_cumumlative_deaths
         }
     
-    return data
+    data_file = open('covid_data.json', 'w')
+    json.dump(data,data_file)
+    data_file.close()
+    print('data')
+    return 
 
 def schedule_covid_updates(update_interval,update_name):
-    new_data = covid_API_request()
-    return new_data
+    s.enter(time_convert(update_interval), 1, covid_API_request,())
+    
+    
+      
+
+
 
 
 
