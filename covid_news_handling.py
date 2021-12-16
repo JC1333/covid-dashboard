@@ -44,8 +44,7 @@ def prepare_news_articles(full_news):
         
 
 def update_news(update_interval,update_name):
-    data.s.enter(time_convert(update_interval),1, news_API_request,())
-
+    update_name = data.s.enterabs(update_interval,1, news_API_request,())
 
 
 

@@ -123,11 +123,14 @@ def covid_API_request(location='exeter',location_type='ltla'):
     data_file = open('covid_data.json', 'w')
     json.dump(data,data_file)
     data_file.close()
-    print('data')
+    
+
+
+    
     return 
 
 def schedule_covid_updates(update_interval,update_name):
-    s.enter(time_convert(update_interval), 1, covid_API_request,())
+    update_name = s.enterabs(update_interval, 1, covid_API_request,())
     
     
       

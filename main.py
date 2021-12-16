@@ -20,15 +20,13 @@ app = Flask(__name__)
 config = get_config_data()
 covid_data = json.load(open('covid_data.json', 'r'))
 news = json.load(open('news_articles.json', 'r'))
-sched_updates = [{'title':'repeat','content':'dd'},
-                 {'title':'covid','content':'dd'},
-                 {'title':'news','content':'dd'}]
+sched_updates = []
 
 
 def remove_article(title):
-    for index in range(len(prepped_news)-1):
-        if prepped_news[index]['title'] == title:
-            removed_article = prepped_news.pop(index)
+    for index in range(len(news)-1):
+        if news[index]['title'] == title:
+            removed_article = news.pop(index)
             file = open("removed_news.json", "r+")
             
             if os.path.getsize('removed_news.json')>6:
@@ -49,27 +47,41 @@ def remove_article(title):
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     data_module.s.run(blocking=False)
-    
+    update_time = '00:00'
     
     
     if request.method == "GET":
         update_name = request.args.get("two")
         update_time = request.args.get("update")
+        current_day_time = time.time()%(24*60*60)
+        current_day_start = (time.time()-current_day_time)
+        next_day_start = (86400)+(time.time()-current_day_time)
+        print('a')
+        update_time_seconds = time_convert(update_time)
+        print('a')
+        
+        if update_time_seconds < current_day_time:
+            update_time_seconds = next_day_start + update_time_seconds
+        else:
+            update_time_seconds = current_day_start + update_time_seconds
+        
         if request.args.get("notif"):
             rm_title = request.args.get("notif")
             remove_article(rm_title)
+        if request.args.get("update_item"):
+            print('left')
         if request.args.get("repeat"):
-            sched_updates[0]['content'] = 'true'
+            print('a')
         if request.args.get("covid-data"):
-            sched_updates[1]['content'] = update_time
-            data_module.schedule_covid_updates(update_time,update_name)
+            sched_updates.append({'title':'covid update','content':'scheduled at'+update_time})
+            data_module.schedule_covid_updates(update_time_seconds,update_name)
         if request.args.get("news"):
-            sched_updates[2]['content'] = update_time
-            news_module.update_news(update_time,update_name)
+            sched_updates.append({'title':'news update','content':'scheduled at'+update_time})
+            news_module.update_news(update_time_seconds,update_name)
 
         
         
-
+    print(data_module.s.queue)
     return render_template('index.html',
                            title='covid dashboard',
                            image=config['image'],
