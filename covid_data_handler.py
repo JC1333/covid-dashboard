@@ -4,16 +4,13 @@ import sched
 import time
 import json
 from uk_covid19 import Cov19API
-from functionallity import time_convert
 from functionallity import get_config_data
 
 s = sched.scheduler(time.time,time.sleep)
 
 
-
 def parse_csv_data(csv_filename):
-
-    #takes a CSV file modifies it into a list
+    """parses a csv file into a list"""
     with (open(csv_filename,'r',)).read() as file:
         prev_index = -1
         next_index = 0
@@ -31,6 +28,7 @@ def parse_csv_data(csv_filename):
 
 
 def process_covid_csv_data(covid_csv_data):
+    """takes a pre made list and calculates value from it"""
     #data seperated by commas
     last7days_cases = 0
     current_hospital_cases = 0
@@ -60,11 +58,13 @@ def process_covid_csv_data(covid_csv_data):
     return last7days_cases , current_hospital_cases , total_deaths
 
 def covid_API_request(location='exeter',location_type='ltla'):
+    """collects covid data from an api before processing and storing the data
+       json file"""
     user_set = get_config_data()
     location = user_set['local_area']
     location_type = user_set['local_type']
     nation=user_set['nation']
-    
+
     national = [
     'areaType=nation',
     'areaName='+nation,
@@ -109,7 +109,7 @@ def covid_API_request(location='exeter',location_type='ltla'):
     count = 0
     while type(national_cumumlative_deaths)!=int:
         national_cumumlative_deaths = natData[count].get('cumDailyNsoDeathsByDeathDate')
-        count=count+1 
+        count=count+1
 
     data = {
             'local_infection_sum':local_infection_sum,
@@ -119,25 +119,13 @@ def covid_API_request(location='exeter',location_type='ltla'):
             'national_hosptital_cases':national_hosptital_cases,
             'national_cumumlative_deaths':national_cumumlative_deaths
         }
-    
+
     data_file = open('covid_data.json', 'w')
     json.dump(data,data_file)
     data_file.close()
-    
 
-
-    
-    return 
 
 def schedule_covid_updates(update_interval,update_name):
-    update_name = s.enterabs(update_interval, 1, covid_API_request,())
-    
-    
-      
-
-
-
-
-
-
-
+    """schedules for the covid data to be updated using the sched module"""
+    sched_name = s.enterabs(update_interval, 1, covid_API_request,())
+    return sched_name

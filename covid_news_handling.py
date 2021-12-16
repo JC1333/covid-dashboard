@@ -1,15 +1,15 @@
 """module uses newsAPI to obtain recent articles related to covid by defualt"""
-from functionallity import get_config_data
-from functionallity import time_convert
-import covid_data_handler as data
-import requests
 import os
 import json
+import requests
+from functionallity import get_config_data
+import covid_data_handler as data
 titles = []
 contents = []
 urls = []
 
 def news_API_request(covid_terms='Covid COVID-19 coronavirus'):
+    """collects news articles using an API for it to go to prepare_news_articles"""
     api_key = get_config_data()['api_key']
     url = ('https://newsapi.org/v2/everything?'
            'q='
@@ -18,11 +18,11 @@ def news_API_request(covid_terms='Covid COVID-19 coronavirus'):
     api_response = requests.get(url)
     news_articles = api_response.json()['articles']
     prepare_news_articles(news_articles)
-    return 
-
 
 
 def prepare_news_articles(full_news):
+    """takes news articles and compares them against a list of already seen articles
+to either keep or remove them"""
     if os.path.getsize('removed_news.json')>6:
         file = open('removed_news.json', 'r')
         removed_news = json.load(file)
@@ -39,12 +39,8 @@ def prepare_news_articles(full_news):
     news_file = open('news_articles.json', 'w')
     json.dump(full_news,news_file)
     news_file.close()
-    print('news')
-    return
-        
 
 def update_news(update_interval,update_name):
-    update_name = data.s.enterabs(update_interval,1, news_API_request,())
-
-
-
+    """schedules updates to the news articles using the sched module"""
+    sched_name = data.s.enterabs(update_interval,1, news_API_request,())
+    return sched_name
